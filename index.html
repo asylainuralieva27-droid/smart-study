@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Smart Study</title>
+<style>
+*{box-sizing:border-box}
+:root{--text:#172033;--muted:#7d8290;--card:rgba(255,255,255,.88);--bg1:#e9f8ff;--bg2:#f7ecff}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--text);background:#eef0f5;min-height:100vh}
+button,input,select,textarea{font:inherit}
+button{border:0;cursor:pointer}
+.app{width:min(100%,540px);min-height:100vh;margin:auto;background:linear-gradient(135deg,var(--bg1) 0%,#f1efff 45%,var(--bg2) 100%);position:relative;padding-bottom:82px;overflow:hidden}
+.screen{display:none;min-height:100vh;padding:30px 18px 20px}
+.screen.active{display:block}
+.gradient{background:linear-gradient(135deg,#e8f8ff,#f5efff 55%,#f8eaff)}
+h1,h2,h3,p{margin-top:0}
+h1{font-size:28px;margin-bottom:6px}
+h2{font-size:24px;margin-bottom:6px}
+.subtitle{color:var(--muted);font-size:16px}
+.logo{width:154px;height:154px;border-radius:28px;margin:38px auto 30px;display:flex;align-items:center;justify-content:center;font-size:64px;background:linear-gradient(135deg,#9a48ed,#407ef1);box-shadow:0 14px 28px rgba(117,72,226,.28)}
+.brand{text-align:center;color:#5f42d8;font-size:31px;font-weight:800}
+.center{text-align:center}
+.role-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:34px 0}
+.role{height:58px;border-radius:15px;background:rgba(255,255,255,.8);color:#555;font-weight:600;box-shadow:0 3px 12px rgba(80,70,130,.05)}
+.role.selected{background:linear-gradient(135deg,#8849e9,#5e70e9);color:#fff;box-shadow:0 8px 20px rgba(112,72,225,.25)}
+.field{margin:18px 0}
+.field label{display:block;text-align:center;font-weight:600;margin-bottom:9px}
+.field input{width:100%;height:60px;border:1px solid #e5e5eb;border-radius:16px;padding:0 18px;background:#fff;color:var(--text);outline:none}
+.field .error{color:#c23636;font-size:13px;text-align:center;margin-top:6px;display:none}
+.primary{width:100%;height:60px;border-radius:17px;color:#fff;font-weight:700;font-size:18px;background:linear-gradient(100deg,#8c48eb,#397ff0);box-shadow:0 9px 22px rgba(104,74,226,.27)}
+.ghost-btn{width:100%;height:52px;border-radius:15px;background:#fff;color:#c23636;font-weight:700;border:1px solid #f0d5d5;margin-top:14px}
+.small-note{text-align:center;color:#888;margin:18px 0 12px}
+.quick-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.quick{background:#fff;border-radius:15px;padding:16px;text-align:center;font-weight:600}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,540px);height:82px;background:rgba(255,255,255,.96);border-top:1px solid #eee;display:grid;grid-template-columns:repeat(5,1fr);z-index:20;padding-bottom:env(safe-area-inset-bottom)}
+.nav button{background:none;color:#8b8e98;font-size:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}
+.nav button span:first-child{font-size:22px;width:50px;height:38px;border-radius:14px;display:flex;align-items:center;justify-content:center}
+.nav button.active{color:#7048db;font-weight:700}
+.nav button.active span:first-child{background:linear-gradient(135deg,#8d4bea,#5a79ed);color:#fff;box-shadow:0 5px 14px rgba(112,72,225,.2)}
+.top{text-align:center;margin-bottom:22px}
+.avatar{width:100px;height:100px;border-radius:50%;margin:0 auto 15px;display:flex;align-items:center;justify-content:center;font-size:48px;background:linear-gradient(135deg,#a149ea,#467ff0)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);background:#fff;border-radius:18px;padding:18px 8px;margin:25px 0}
+.stat{text-align:center;border-right:1px solid #eee}.stat:last-child{border:0}
+.stat b{display:block;font-size:25px;color:#7046d9}.stat small{color:#888}
+.card{background:var(--card);border-radius:20px;padding:18px;margin:14px 0;box-shadow:0 5px 18px rgba(100,80,150,.05)}
+.icon-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.icon-card{background:#fff;border-radius:17px;padding:17px 8px;text-align:center;color:#555}
+.icon-card .big{font-size:26px;display:block;margin-bottom:6px}
+.section-title{font-size:20px;font-weight:750;margin:22px 0 10px}
+.timer-ring{width:280px;height:280px;border-radius:50%;margin:40px auto;border:12px solid #e4e4e7;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.18)}
+.timer-time{text-align:center;font-size:52px;font-weight:800}.timer-time small{display:block;font-size:14px;color:#888;font-weight:500}
+.time-options{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.time-options button{background:#fff;border-radius:14px;padding:12px 3px;color:#555}
+.time-options button.selected{color:#7b49dc;font-weight:800}
+.time-options button:disabled{opacity:.5}
+.timer-controls{display:flex;justify-content:center;gap:18px;margin:25px 0}
+.control{width:62px;height:62px;border-radius:17px;background:#fff;font-size:23px}
+.play{background:linear-gradient(135deg,#8b49eb,#437cf0);color:#fff;box-shadow:0 8px 18px rgba(90,70,220,.25)}
+.ai-tip{display:flex;gap:12px;align-items:flex-start}
+.ai-icon{width:48px;height:48px;flex:none;border-radius:14px;background:linear-gradient(135deg,#8b49eb,#4d76ed);color:#fff;display:flex;align-items:center;justify-content:center;font-size:23px}
+.games{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.game{background:#fff;border-radius:20px;padding:18px;min-height:170px;text-align:left}
+.game-icon{width:54px;height:54px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:27px;margin-bottom:18px}
+.pink{background:#ef3b83}.orange{background:#ff920d}.green{background:#18be70}.cyan{background:#1ca9dc}
+.reward{color:#7d45d6;font-weight:700;margin-top:8px}
+.chat-head{display:flex;align-items:center;gap:12px;background:#fff;margin:-30px -18px 0;padding:18px}
+.online{color:#18b95e;font-size:13px}
+.chat-shortcuts{display:flex;gap:8px;overflow:auto;padding:12px 0;border-bottom:1px solid #eee}
+.chat-shortcuts button{white-space:nowrap;border-radius:13px;padding:9px 12px;background:#eef3ff;color:#5969c8}
+.messages{min-height:400px;padding-top:18px}
+.message{background:#fff;padding:15px;border-radius:18px 18px 18px 4px;max-width:90%;line-height:1.4;margin-bottom:12px}
+.user-message{margin-left:auto;border-radius:18px 18px 4px 18px;background:#e9ddff}
+.chat-input{display:flex;gap:8px;position:sticky;bottom:82px;background:rgba(255,255,255,.94);padding:10px 0}
+.chat-input input{flex:1;border:1px solid #e2e2e7;border-radius:15px;padding:14px;outline:none}
+.send{width:52px;border-radius:15px;background:linear-gradient(135deg,#8b49eb,#4b78ee);color:#fff}
+.profile-head{text-align:center;background:#fff;border-radius:22px;padding:28px 18px 22px}
+.xpbox{background:#f4f4f6;border-radius:16px;padding:12px;text-align:left}
+.xpbar{height:9px;border-radius:20px;background:#e0e1e5;overflow:hidden;margin-top:10px}.xpbar i{display:block;height:100%;width:15%;background:linear-gradient(90deg,#8c4ae9,#4380ee)}
+.grid4{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.number-card{background:#fff;border-radius:18px;padding:20px;text-align:center}.number-card b{font-size:28px;color:#7d46dc;display:block}
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:50;background:#172033;color:#fff;border-radius:14px;padding:13px 18px;max-width:90%;display:none;box-shadow:0 8px 25px #0002}
+.back-btn{background:none;color:#7048db;font-weight:700;margin-bottom:16px;padding:0;font-size:15px}
+.game-progress{text-align:center;color:#888;margin-bottom:6px;font-size:14px}
+.quiz-question{font-size:19px;font-weight:700;margin:14px 0 16px;text-align:center}
+.quiz-options{display:grid;gap:10px}
+.quiz-option{background:#fff;border-radius:14px;padding:14px;text-align:left;color:var(--text)}
+.quiz-option.correct{background:#d8f5e3;color:#188158;font-weight:700}
+.quiz-option.wrong{background:#ffe1e1;color:#c23636;font-weight:700}
+.quiz-option:disabled{cursor:default}
+.memory-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0}
+.memory-card{aspect-ratio:1;border-radius:14px;background:linear-gradient(135deg,#8b49eb,#4b78ee);display:flex;align-items:center;justify-content:center;font-size:26px;color:transparent}
+.memory-card.flipped,.memory-card.matched{background:#fff;color:#333;border:2px solid #eee}
+.memory-card.matched{background:#e9f9ee;border-color:#bdeecb}
+.math-problem{font-size:44px;text-align:center;font-weight:800;margin:34px 0 18px}
+.math-input{width:100%;height:60px;border-radius:16px;border:1px solid #e5e5eb;text-align:center;font-size:24px;outline:none}
+.word-scramble{font-size:32px;letter-spacing:8px;text-align:center;font-weight:800;margin:34px 0 18px}
+.game-result{text-align:center;padding:20px 0}
+.game-result .big-score{font-size:48px;font-weight:800;color:#7d46dc;margin:10px 0}
+/* Tasks v2 */
+.add-task{background:#fff;border-radius:18px;padding:16px;margin-bottom:16px;display:grid;gap:10px}
+.add-task input,.add-task select,.add-task textarea{height:48px;border:1px solid #e5e5ea;border-radius:13px;padding:0 12px;background:#fff}
+.add-task textarea{height:64px;padding:10px 12px;resize:none}
+.add-task .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.progress-card{background:#fff;border-radius:18px;padding:16px;margin-bottom:14px}
+.progress-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-weight:700}
+.progress-track{height:9px;border-radius:20px;background:#e7e7ee;overflow:hidden}
+.progress-track i{display:block;height:100%;background:linear-gradient(90deg,#8c4ae9,#4380ee)}
+.progress-legend{display:flex;gap:14px;margin-top:10px;font-size:13px;color:#888;flex-wrap:wrap}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px}
+.filter-tabs{display:flex;gap:8px;overflow:auto;margin-bottom:14px}
+.filter-tab{background:#fff;border-radius:12px;padding:9px 14px;color:#7d8290;white-space:nowrap;flex:none}
+.filter-tab.active{background:#efe8ff;color:#7048db;font-weight:700}
+.task2{background:#fff;border-radius:17px;padding:16px;margin:10px 0}
+.task2 .row1{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.task2 .title{font-weight:700;display:flex;align-items:center;gap:8px}
+.task2 .desc{color:#888;font-size:14px;margin-top:4px}
+.task2 .meta{display:flex;gap:12px;color:#9a9da8;font-size:13px;margin-top:10px;flex-wrap:wrap}
+.status-select{border:none;background:#f4f4f6;border-radius:10px;padding:6px 10px;font-size:13px;font-weight:600;flex:none}
+.del-link{color:#c23636;font-size:13px;background:none;flex:none}
+.empty-note{text-align:center;color:#9a9da8;padding:30px 10px}
+/* Achievements v2 */
+.badges8{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.badge{background:#f4f4f6;border-radius:14px;padding:10px 4px;text-align:center;font-size:24px;opacity:.35;filter:grayscale(1)}
+.badge.earned{opacity:1;filter:none;background:#fff}
+.badge small{display:block;font-size:10px;margin-top:4px;color:#888;font-weight:600}
+.unlock-item{display:flex;align-items:center;gap:10px;background:#f9f9fb;border-radius:14px;padding:12px;margin-top:8px}
+.unlock-item b{font-size:14px}
+.unlock-item .lvl{color:#9a9da8;font-size:12px}
+.unlock-item .lock{margin-left:auto;color:#bbb;font-size:18px}
+.unlock-item.unlocked{background:#eefaf1}
+.unlock-item.unlocked .lock{color:#2fb872}
+/* Teacher v2 */
+.code-row{display:flex;gap:8px;margin-top:8px}
+.code-row input{flex:1;border:1px solid #e5e5eb;border-radius:12px;padding:0 12px;height:44px;background:#f7f7fa;font-weight:700;letter-spacing:1px;color:#5f42d8}
+.copy-btn{background:linear-gradient(100deg,#8c48eb,#397ff0);color:#fff;border-radius:12px;padding:0 16px;font-weight:700}
+.week-chart{display:flex;justify-content:space-between;align-items:flex-end;height:110px;margin-top:14px}
+.week-col{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:#888;flex:1}
+.week-bar{width:20px;border-radius:8px 8px 0 0;background:linear-gradient(180deg,#8c4ae9,#4380ee);min-height:4px}
+@media(max-width:390px){.screen{padding-left:14px;padding-right:14px}.timer-ring{width:245px;height:245px}.timer-time{font-size:45px}.memory-grid{gap:7px}}
+</style>
+</head>
+<body>
+<div class="app">
+<div id="toast" class="toast"></div>
+
+<section id="register" class="screen active gradient">
+  <div class="logo">💡</div>
+  <div class="brand">Smart Study</div>
+  <p class="subtitle center">Платформа для умной учёбы</p>
+  <div class="role-row">
+    <button class="role selected" data-role="student">👨‍🎓 Студент</button>
+    <button class="role" data-role="teacher">👨‍🏫 Учитель</button>
+  </div>
+  <div class="field"><label>Полное имя</label><input id="name" placeholder="Введите полное имя"></div>
+  <div class="field"><label>Email</label><input id="email" placeholder="Введите email"><div class="error" id="regError">Введите имя и email</div></div>
+  <button class="primary" onclick="register()">Зарегистрироваться</button>
+  <div class="small-note">или быстро войти как:</div>
+  <div class="quick-row">
+    <button class="quick" onclick="quickLogin('student')">👨‍🎓<br>Студент</button>
+    <button class="quick" onclick="quickLogin('teacher')">👨‍🏫<br>Учитель</button>
+  </div>
+</section>
+
+<section id="home" class="screen">
+  <div class="top">
+    <div class="avatar" id="homeAvatar">👨‍🎓</div>
+    <h1 id="helloName">Ученик</h1>
+    <div class="subtitle" id="roleText">Студент</div>
+    <p style="font-size:18px;line-height:1.45;margin:22px auto;max-width:390px">Привет! 👋 Я Smart Study 🤖 Я помогу тебе учиться легче, эффективнее и с интересом!</p>
+  </div>
+  <div class="stats">
+    <div class="stat"><b id="taskCount">0</b><small>Задач</small></div>
+    <div class="stat"><b id="pointsTop">0</b><small>Баллов</small></div>
+    <div class="stat"><b id="levelTop">1</b><small>Уровень</small></div>
+  </div>
+  <button class="primary" onclick="show('timer')">⚡ Начать учиться</button>
+  <div class="icon-btns" style="margin-top:14px">
+    <button class="icon-card" onclick="show('profile')"><span class="big">♙</span>Профиль</button>
+    <button class="icon-card" onclick="show('timer')"><span class="big">◷</span>Таймер</button>
+    <button class="icon-card" onclick="show('chat')"><span class="big">💬</span>AI Чат</button>
+  </div>
+</section>
+
+<section id="tasks" class="screen">
+  <h2>Мои задачи</h2><p class="subtitle">Планируй учёбу и отмечай прогресс</p>
+
+  <div class="add-task">
+    <input id="taskInput" placeholder="Название задачи...">
+    <textarea id="taskDesc" placeholder="Описание (необязательно)"></textarea>
+    <div class="row2">
+      <select id="subject"><option>Биология</option><option>Химия</option><option>Английский</option><option>Математика</option></select>
+      <select id="priority"><option>Низкий</option><option selected>Средний</option><option>Высокий</option></select>
+    </div>
+    <input id="taskDue" type="date">
+    <button class="primary" style="height:48px;font-size:16px" onclick="addTask()">+ Добавить задачу</button>
+  </div>
+
+  <div class="progress-card">
+    <div class="progress-head"><span>Общий прогресс</span><span id="progressPct">0%</span></div>
+    <div class="progress-track"><i id="progressBar" style="width:0%"></i></div>
+    <div class="progress-legend">
+      <span><i class="dot" style="background:#18be70"></i>Выполнено: <b id="cntDone">0</b></span>
+      <span><i class="dot" style="background:#ff920d"></i>В процессе: <b id="cntProgress">0</b></span>
+      <span><i class="dot" style="background:#ef3b83"></i>Не начато: <b id="cntTodo">0</b></span>
+    </div>
+  </div>
+
+  <div class="filter-tabs">
+    <button class="filter-tab active" data-f="all" onclick="setFilter('all')">Все</button>
+    <button class="filter-tab" data-f="todo" onclick="setFilter('todo')">Не начато</button>
+    <button class="filter-tab" data-f="progress" onclick="setFilter('progress')">В процессе</button>
+    <button class="filter-tab" data-f="done" onclick="setFilter('done')">Выполнено</button>
+  </div>
+
+  <div id="taskList"></div>
+</section>
+
+<section id="timer" class="screen">
+  <div class="top"><h2>Учебная сессия ⏱️</h2><p class="subtitle">Сфокусируйся на учёбе!</p></div>
+  <div class="timer-ring"><div class="timer-time"><span id="timerText">25:00</span><small>минут</small></div></div>
+  <div class="time-options">
+    <button data-min="15">15 МИН</button><button class="selected" data-min="25">25 МИН</button><button data-min="45">45 МИН</button><button data-min="60">60 МИН</button>
+  </div>
+  <div class="timer-controls">
+    <button class="control" onclick="resetTimer()">↻</button>
+    <button class="control play" id="playBtn" onclick="toggleTimer()">▶</button>
+    <button class="control" onclick="skipTimer()">»</button>
+  </div>
+  <div class="card ai-tip"><div class="ai-icon">💡</div><div><b>Совет от AI</b><br><span class="subtitle" id="timerTip">Попробуй технику Помодоро: 25 минут работы, 5 минут отдыха!</span></div></div>
+</section>
+
+<section id="games" class="screen">
+  <div class="top"><h2>🎮 Мини-игры</h2><p class="subtitle">Выбери мини-игру для перерыва</p></div>
+  <div class="games">
+    <button class="game" onclick="startQuiz()"><div class="game-icon pink">🧠</div><b>Викторина</b><p class="subtitle">Проверь знания</p><div class="reward">+10 баллов</div></button>
+    <button class="game" onclick="startMemory()"><div class="game-icon orange">🃏</div><b>Память</b><p class="subtitle">Найди пары</p><div class="reward">+15 баллов</div></button>
+    <button class="game" onclick="startMath()"><div class="game-icon green">🔢</div><b>Быстрый счёт</b><p class="subtitle">Реши примеры</p><div class="reward">+20 баллов</div></button>
+    <button class="game" onclick="startWords()"><div class="game-icon cyan">📝</div><b>Слова</b><p class="subtitle">Составь слово</p><div class="reward">+15 баллов</div></button>
+  </div>
+  <div class="card">
+    <h3>🏆 Твои рекорды</h3>
+    <p>Викторина <b style="float:right;color:#7d46dc" id="recQuiz">0 очков</b></p>
+    <p>Память <b style="float:right;color:#7d46dc" id="recMemory">0 пар</b></p>
+    <p>Быстрый счёт <b style="float:right;color:#7d46dc" id="recMath">0 примеров</b></p>
+    <p>Слова <b style="float:right;color:#7d46dc" id="recWords">0 слов</b></p>
+  </div>
+</section>
+
+<section id="game-quiz" class="screen">
+  <button class="back-btn" onclick="show('games')">← Назад к играм</button>
+  <div class="card">
+    <div class="game-progress" id="quizProgress">Вопрос 1 из 5</div>
+    <div class="quiz-question" id="quizQuestion">Вопрос</div>
+    <div class="quiz-options" id="quizOptions"></div>
+  </div>
+</section>
+
+<section id="game-memory" class="screen">
+  <button class="back-btn" onclick="show('games')">← Назад к играм</button>
+  <div class="card">
+    <div class="game-progress" id="memoryProgress">Ходы: 0 · Пары: 0/6</div>
+    <div class="memory-grid" id="memoryGrid"></div>
+  </div>
+</section>
+
+<section id="game-math" class="screen">
+  <button class="back-btn" onclick="show('games')">← Назад к играм</button>
+  <div class="card">
+    <div class="game-progress" id="mathProgress">Пример 1 из 8 · Верно: 0</div>
+    <div class="math-problem" id="mathProblem">2 + 2</div>
+    <input class="math-input" id="mathInput" type="number" inputmode="numeric" placeholder="Ответ" autocomplete="off">
+    <button class="primary" style="margin-top:14px" onclick="submitMath()">Ответить</button>
+  </div>
+</section>
+
+<section id="game-words" class="screen">
+  <button class="back-btn" onclick="show('games')">← Назад к играм</button>
+  <div class="card">
+    <div class="game-progress" id="wordsProgress">Слово 1 из 5 · Верно: 0</div>
+    <p class="subtitle center" style="margin-top:6px">Собери слово из букв:</p>
+    <div class="word-scramble" id="wordScramble">СЛОВО</div>
+    <input class="math-input" id="wordInput" type="text" placeholder="Твой ответ" autocomplete="off">
+    <button class="primary" style="margin-top:14px" onclick="submitWord()">Ответить</button>
+  </div>
+</section>
+
+<section id="game-result" class="screen">
+  <div class="card game-result">
+    <div style="font-size:50px" id="resultEmoji">🎉</div>
+    <h2 id="resultTitle">Отлично!</h2>
+    <p class="subtitle" id="resultSubtitle">Ты справился с игрой</p>
+    <div class="big-score" id="resultScore">+0</div>
+    <button class="primary" onclick="show('games')">К играм</button>
+  </div>
+</section>
+
+<section id="chat" class="screen">
+  <div class="chat-head"><div class="ai-icon">💡</div><div><b>AI Помощник</b><br><span class="online">● Онлайн</span></div></div>
+  <div class="chat-shortcuts">
+    <button onclick="askAI('Объяснить тему')">📚 Объяснить тему</button>
+    <button onclick="askAI('Пройти тест')">📝 Пройти тест</button>
+    <button onclick="askAI('Совет по учёбе')">💡 Совет по учёбе</button>
+  </div>
+  <div id="messages" class="messages"></div>
+  <div class="chat-input"><input id="chatInput" placeholder="Напиши свой вопрос..." onkeydown="if(event.key==='Enter')sendMessage()"><button class="send" onclick="sendMessage()">➤</button></div>
+</section>
+
+<section id="profile" class="screen">
+  <div class="profile-head">
+    <div class="avatar" id="profileAvatar">👨‍🎓</div><h2 id="profileName">Ученик</h2><p class="subtitle" id="profileRole">Студент</p>
+    <div class="xpbox"><b>Уровень <span id="levelProfile">1</span></b><span style="float:right;font-size:13px;color:#777"><span id="xp">0</span>/100 XP</span><div class="xpbar"><i id="xpbar"></i></div></div>
+  </div>
+  <div class="grid4" style="margin-top:14px">
+    <div class="number-card"><b id="completed">0</b>Выполнено задач</div>
+    <div class="number-card"><b id="points">0</b>Всего баллов</div>
+    <div class="number-card"><b id="studyMinutes">0</b>Минут учёбы</div>
+    <div class="number-card"><b id="streak">0</b>Дней подряд</div>
+  </div>
+  <div class="card"><h3>📚 Информация о классе</h3><b>Код класса: <span id="classCode">—</span></b><p class="subtitle" style="margin:8px 0 0">Учитель видит твой прогресс с использованием этого кода</p></div>
+  <div class="card">
+    <h3>🏆 Значки</h3>
+    <div class="badges8" id="badges8"></div>
+  </div>
+  <div class="card">
+    <h3>🔒 Разблокируемые функции</h3>
+    <div id="unlockList"></div>
+  </div>
+  <button class="ghost-btn" onclick="logout()">Выйти из аккаунта</button>
+</section>
+
+<section id="teacher" class="screen">
+  <h2>Панель учителя</h2><p class="subtitle">Отслеживай активность учеников</p>
+
+  <div class="card">
+    <h3>🏫 Мои студенты</h3>
+    <p class="empty-note" id="studentsEmpty" style="padding:14px 0">Ещё нет студентов</p>
+    <p class="subtitle">Код класса:</p>
+    <div class="code-row">
+      <input id="teacherCode" readonly>
+      <button class="copy-btn" onclick="copyClassCode()">Копировать</button>
+    </div>
+    <p class="subtitle" style="margin-top:8px">Дай этот код своим ученикам — как только появится общая база данных, они смогут присоединиться к классу по нему.</p>
+  </div>
+
+  <div class="card">
+    <h3>📊 Обзор (демо-данные)</h3>
+    <div class="grid4">
+      <div class="number-card"><b>24</b>Ученика</div><div class="number-card"><b>18</b>Активны</div>
+      <div class="number-card"><b>86%</b>Средний прогресс</div><div class="number-card"><b>142</b>Задачи</div>
+    </div>
+    <p class="subtitle" style="margin-top:10px">Показано для примера — реальная статистика класса появится, когда ученики смогут присоединяться по коду.</p>
+  </div>
+
+  <button class="ghost-btn" onclick="logout()">Выйти из аккаунта</button>
+</section>
+
+<nav id="nav" class="nav" style="display:none">
+  <button data-screen="home" onclick="show('home')"><span>⌂</span>Главная</button>
+  <button data-screen="tasks" onclick="show('tasks')"><span>♧</span>Задачи</button>
+  <button data-screen="timer" onclick="show('timer')"><span>◷</span>Таймер</button>
+  <button data-screen="chat" onclick="show('chat')"><span>💬</span>Чат</button>
+  <button data-screen="profile" onclick="show('profile')"><span>♙</span>Профиль</button>
+</nav>
+</div>
+
+<script>
+/* ---------- State & persistence ---------- */
+const STORAGE_KEY = 'smartStudyData';
+const $ = id => document.getElementById(id);
+function cryptoId(){ return Math.random().toString(36).slice(2,10); }
+function todayStr(d){ d=d||new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+
+function defaultState(){
+  return {
+    name:'', email:'', role:'student', loggedIn:false,
+    level:1, xp:0, points:0, completed:0, studyMinutes:0,
+    classCode:'CLASS'+cryptoId().slice(0,6).toUpperCase(),
+    taskFilter:'all',
+    tasks:[],
+    records:{quiz:0, memory:0, math:0, words:0},
+    dailyMinutes:{},
+    focusDays:[],
+    playedGames:[],
+    achievements:{firstTask:false, fiveTasks:false, streak3:false, hourStudy:false, quickStart:false, scholar:false, persistent:false, superstudent:false}
+  };
+}
+
+let state = loadState();
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return Object.assign(defaultState(), JSON.parse(raw));
+  }catch(e){ console.warn(e); }
+  return defaultState();
+}
+function saveState(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){ console.warn(e); } }
+
+function showToast(t){
+  const el=$('toast'); el.textContent=t; el.style.display='block';
+  clearTimeout(showToast._t); showToast._t=setTimeout(()=>el.style.display='none',2200);
+}
+function escapeHtml(str){ const d=document.createElement('div'); d.textContent=str; return d.innerHTML; }
+
+/* ---------- Navigation ---------- */
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
+  $('nav').style.display = (id==='register') ? 'none' : 'grid';
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active', b.dataset.screen===id));
+  if(id==='tasks') renderTasks();
+  if(id==='profile') updateStats();
+  if(id==='games') renderRecords();
+  if(id==='teacher') renderTeacher();
+  window.scrollTo(0,0);
+}
+
+/* ---------- Registration ---------- */
+document.querySelectorAll('.role').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.role').forEach(x=>x.classList.remove('selected'));
+  b.classList.add('selected');
+});
+
+function register(){
+  const name=$('name').value.trim(), email=$('email').value.trim();
+  const roleBtn=document.querySelector('.role.selected');
+  const role = roleBtn ? roleBtn.dataset.role : 'student';
+  if(!name || !email){ $('regError').style.display='block'; return; }
+  $('regError').style.display='none';
+  state.name=name; state.email=email; state.role=role; state.loggedIn=true;
+  saveState(); enterApp();
+  showToast('Добро пожаловать в Smart Study!');
+}
+function quickLogin(role){
+  document.querySelectorAll('.role').forEach(x=>x.classList.toggle('selected', x.dataset.role===role));
+  $('name').value = role==='teacher' ? 'Демо учитель' : 'Демо студент';
+  $('email').value = role==='teacher' ? 'demo.teacher@smartstudy.app' : 'demo.student@smartstudy.app';
+  register();
+}
+function logout(){ state.loggedIn=false; saveState(); $('name').value=''; $('email').value=''; show('register'); }
+
+function enterApp(){
+  const emoji = state.role==='teacher' ? '👨‍🏫' : '👨‍🎓';
+  $('helloName').textContent=state.name;
+  $('profileName').textContent=state.name;
+  $('roleText').textContent = state.role==='teacher'?'Учитель':'Студент';
+  $('profileRole').textContent = state.role==='teacher'?'Учитель':'Студент';
+  $('homeAvatar').textContent=emoji; $('profileAvatar').textContent=emoji;
+  $('classCode').textContent=state.classCode;
+  updateStats(); renderTasks();
+  show(state.role==='teacher' ? 'teacher' : 'home');
+}
+
+/* ---------- Tasks ---------- */
+function setFilter(f){
+  state.taskFilter=f; saveState();
+  document.querySelectorAll('.filter-tab').forEach(t=>t.classList.toggle('active', t.dataset.f===f));
+  renderTasks();
+}
+const STATUS_LABEL = {todo:'Не начато', progress:'В процессе', done:'Выполнено'};
+const STATUS_DOT = {todo:'#ef3b83', progress:'#ff920d', done:'#18be70'};
+
+function addTask(){
+  const title=$('taskInput').value.trim();
+  if(!title){ showToast('Введите название задачи'); return; }
+  state.tasks.push({
+    id:cryptoId(), title, desc:$('taskDesc').value.trim(),
+    subject:$('subject').value, priority:$('priority').value,
+    due:$('taskDue').value, status:'todo'
+  });
+  $('taskInput').value=''; $('taskDesc').value=''; $('taskDue').value='';
+  saveState(); renderTasks();
+  showToast('Задача добавлена');
+}
+
+function setTaskStatus(id, status){
+  const t = state.tasks.find(x=>x.id===id);
+  if(!t) return;
+  const wasDone = t.status==='done';
+  t.status = status;
+  if(status==='done' && !wasDone){
+    awardXp(5,5); state.completed++;
+    checkAchievements();
+  } else if(wasDone && status!=='done'){
+    state.points=Math.max(0,state.points-5); state.xp=Math.max(0,state.xp-5);
+    state.completed=Math.max(0,state.completed-1); recalcLevel();
+  }
+  saveState(); renderTasks(); updateStats();
+}
+function deleteTask(id){ state.tasks=state.tasks.filter(x=>x.id!==id); saveState(); renderTasks(); }
+
+function renderTasks(){
+  const filtered = state.tasks.filter(t=> state.taskFilter==='all' ? true : t.status===state.taskFilter);
+  const list=$('taskList'); list.innerHTML='';
+  if(filtered.length===0){
+    list.innerHTML = '<div class="empty-note">Пока нет задач. Нажми «+ Добавить задачу»! 📚</div>';
+  }
+  filtered.forEach(t=>{
+    const el=document.createElement('div');
+    el.className='task2';
+    el.innerHTML = `
+      <div class="row1">
+        <div class="title"><i class="dot" style="background:${STATUS_DOT[t.status]}"></i>${escapeHtml(t.title)}</div>
+        <select class="status-select" onchange="setTaskStatus('${t.id}', this.value)">
+          <option value="todo" ${t.status==='todo'?'selected':''}>Не начато</option>
+          <option value="progress" ${t.status==='progress'?'selected':''}>В процессе</option>
+          <option value="done" ${t.status==='done'?'selected':''}>Выполнено</option>
+        </select>
+      </div>
+      ${t.desc ? `<div class="desc">${escapeHtml(t.desc)}</div>` : ''}
+      <div class="meta">
+        <span>${escapeHtml(t.subject)}</span>
+        <span>${t.priority==='Высокий'?'⬆️':t.priority==='Низкий'?'⬇️':'➡️'} ${t.priority}</span>
+        ${t.due ? `<span>📅 ${t.due}</span>` : ''}
+        <button class="del-link" onclick="deleteTask('${t.id}')">Удалить</button>
+      </div>`;
+    list.appendChild(el);
+  });
+  const total=state.tasks.length;
+  const done=state.tasks.filter(t=>t.status==='done').length;
+  const progress=state.tasks.filter(t=>t.status==='progress').length;
+  const todo=state.tasks.filter(t=>t.status==='todo').length;
+  $('cntDone').textContent=done; $('cntProgress').textContent=progress; $('cntTodo').textContent=todo;
+  const pct = total? Math.round(done/total*100) : 0;
+  $('progressPct').textContent=pct+'%'; $('progressBar').style.width=pct+'%';
+  $('taskCount').textContent = total-done;
+}
+
+/* ---------- XP / level / stats ---------- */
+function recalcLevel(){ state.level = Math.floor(state.xp/100)+1; }
+function awardXp(xpAmount, pointsAmount){
+  state.xp+=xpAmount; state.points+=pointsAmount; recalcLevel();
+  checkAchievements(); saveState(); updateStats();
+}
+
+function updateStats(){
+  $('points').textContent=state.points; $('pointsTop').textContent=state.points;
+  $('xp').textContent=state.xp%100; $('levelProfile').textContent=state.level; $('levelTop').textContent=state.level;
+  $('completed').textContent=state.completed; $('studyMinutes').textContent=state.studyMinutes;
+  $('streak').textContent=state.focusDays.length;
+  $('xpbar').style.width=(state.xp%100)+'%';
+  $('taskCount').textContent=state.tasks.filter(t=>t.status!=='done').length;
+  renderBadges(); renderUnlocks();
+}
+
+/* ---------- Achievements ---------- */
+const BADGES = [
+  {id:'firstTask', emoji:'🌟', label:'Первая цель'},
+  {id:'fiveTasks', emoji:'🎯', label:'5 задач'},
+  {id:'streak3', emoji:'🔥', label:'3 дня подряд'},
+  {id:'hourStudy', emoji:'📚', label:'1 час учёбы'},
+  {id:'quickStart', emoji:'⚡', label:'Быстрый старт'},
+  {id:'scholar', emoji:'🧠', label:'Умник'},
+  {id:'persistent', emoji:'💪', label:'Упорный'},
+  {id:'superstudent', emoji:'🌈', label:'Супер ученик'}
+];
+const UNLOCKS = [
+  {level:3, emoji:'🎨', label:'Тёмная тема'},
+  {level:5, emoji:'✨', label:'Анимации'},
+  {level:10, emoji:'🤖', label:'Продвинутый AI'}
+];
+
+function checkAchievements(){
+  const a=state.achievements;
+  const newly=[];
+  if(!a.firstTask && state.completed>=1){ a.firstTask=true; newly.push('🌟 Первая цель'); }
+  if(!a.fiveTasks && state.completed>=5){ a.fiveTasks=true; newly.push('🎯 5 задач'); }
+  if(!a.streak3 && state.focusDays.length>=3){ a.streak3=true; newly.push('🔥 3 дня подряд'); }
+  if(!a.hourStudy && state.studyMinutes>=60){ a.hourStudy=true; newly.push('📚 1 час учёбы'); }
+  if(!a.quickStart && state.playedGames.length>=1){ a.quickStart=true; newly.push('⚡ Быстрый старт'); }
+  if(!a.scholar && state.xp>=100){ a.scholar=true; newly.push('🧠 Умник'); }
+  if(!a.persistent && state.studyMinutes>=180){ a.persistent=true; newly.push('💪 Упорный'); }
+  if(!a.superstudent && state.level>=5){ a.superstudent=true; newly.push('🌈 Супер ученик'); }
+  newly.forEach(n=>showToast('Новый значок: '+n));
+  if(newly.length) saveState();
+}
+
+function renderBadges(){
+  const box=$('badges8'); box.innerHTML='';
+  BADGES.forEach(b=>{
+    const earned = !!state.achievements[b.id];
+    const el=document.createElement('div');
+    el.className='badge'+(earned?' earned':'');
+    el.innerHTML = `${b.emoji}<small>${b.label}</small>`;
+    box.appendChild(el);
+  });
+}
+function renderUnlocks(){
+  const box=$('unlockList'); box.innerHTML='';
+  UNLOCKS.forEach(u=>{
+    const unlocked = state.level >= u.level;
+    const el=document.createElement('div');
+    el.className='unlock-item'+(unlocked?' unlocked':'');
+    el.innerHTML = `<span style="font-size:20px">${u.emoji}</span><div><b>${u.label}</b><div class="lvl">Уровень ${u.level}</div></div><span class="lock">${unlocked?'✓':'🔒'}</span>`;
+    box.appendChild(el);
+  });
+}
+
+/* ---------- Timer ---------- */
+let seconds=1500, timerId=null, running=false;
+const tips=[
+  'Попробуй технику Помодоро: 25 минут работы, 5 минут отдыха!',
+  'Убери телефон подальше — так легче сосредоточиться.',
+  'Повторяй сложные темы в начале сессии, пока концентрация высокая.',
+  'Проговаривай материал вслух — это помогает лучше запомнить.',
+  'После сессии сделай короткую растяжку.'
+];
+document.querySelectorAll('.time-options button').forEach(b=>b.onclick=()=>{
+  if(running) return;
+  document.querySelectorAll('.time-options button').forEach(x=>x.classList.remove('selected'));
+  b.classList.add('selected'); seconds=Number(b.dataset.min)*60; updateTimerDisplay();
+});
+function updateTimerDisplay(){
+  const m=Math.floor(seconds/60), s=seconds%60;
+  $('timerText').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+function toggleTimer(){
+  if(running){
+    clearInterval(timerId); running=false; $('playBtn').textContent='▶';
+    document.querySelectorAll('.time-options button').forEach(b=>b.disabled=false);
+    return;
+  }
+  running=true; $('playBtn').textContent='Ⅱ';
+  document.querySelectorAll('.time-options button').forEach(b=>b.disabled=true);
+  timerId=setInterval(()=>{ seconds--; updateTimerDisplay(); if(seconds<=0) finishSession(); },1000);
+}
+function finishSession(){
+  clearInterval(timerId); running=false; $('playBtn').textContent='▶';
+  document.querySelectorAll('.time-options button').forEach(b=>b.disabled=false);
+  const minutes=Number(document.querySelector('.time-options button.selected').dataset.min);
+  state.studyMinutes+=minutes;
+  const today=todayStr();
+  state.dailyMinutes[today]=(state.dailyMinutes[today]||0)+minutes;
+  if(!state.focusDays.includes(today)) state.focusDays.push(today);
+  awardXp(10,10);
+  saveState();
+  showToast('Сессия завершена! +10 баллов');
+  setTimeout(()=>show('games'),700);
+}
+function resetTimer(){
+  clearInterval(timerId); running=false; $('playBtn').textContent='▶';
+  document.querySelectorAll('.time-options button').forEach(b=>b.disabled=false);
+  seconds=Number(document.querySelector('.time-options button.selected').dataset.min)*60;
+  updateTimerDisplay();
+}
+function skipTimer(){ finishSession(); }
+
+/* ---------- Mini-games ---------- */
+function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function markGamePlayed(name){
+  if(!state.playedGames.includes(name)) state.playedGames.push(name);
+  checkAchievements(); saveState();
+}
+function finishGame(gameKey,title,subtitle,emoji,earned,recordValue){
+  markGamePlayed(gameKey);
+  awardXp(Math.round(earned*0.6), earned);
+  if(state.records[gameKey]===undefined || recordValue>state.records[gameKey]) state.records[gameKey]=recordValue;
+  saveState();
+  $('resultEmoji').textContent=emoji; $('resultTitle').textContent=title;
+  $('resultSubtitle').textContent=subtitle; $('resultScore').textContent='+'+earned+' баллов';
+  show('game-result');
+}
+function renderRecords(){
+  $('recQuiz').textContent=state.records.quiz+' очков';
+  $('recMemory').textContent=state.records.memory+' пар';
+  $('recMath').textContent=state.records.math+' примеров';
+  $('recWords').textContent=state.records.words+' слов';
+}
+
+/* Quiz */
+const QUIZ_BANK=[
+  {q:'Сколько костей у взрослого человека?', options:['206','150','300','250'], a:0},
+  {q:'Какой газ растения выделяют при фотосинтезе?', options:['Кислород','Углекислый газ','Азот','Водород'], a:0},
+  {q:'Химическая формула воды?', options:['H2O','CO2','O2','NaCl'], a:0},
+  {q:'Сколько протонов у атома водорода?', options:['1','2','3','4'], a:0},
+  {q:'Как переводится слово "apple"?', options:['Яблоко','Груша','Банан','Апельсин'], a:0},
+  {q:'Какое слово является синонимом "big"?', options:['Large','Small','Fast','Slow'], a:0},
+  {q:'Сколько будет 7 × 8?', options:['56','54','58','49'], a:0},
+  {q:'Чему равен квадратный корень из 81?', options:['9','8','7','10'], a:0}
+];
+let quizState=null;
+function startQuiz(){
+  const questions = shuffle(QUIZ_BANK).slice(0,5).map(q=>{
+    const correctText=q.options[q.a];
+    return {q:q.q, options:shuffle(q.options), answer:correctText};
+  });
+  quizState={questions, index:0, score:0};
+  show('game-quiz'); renderQuizQuestion();
+}
+function renderQuizQuestion(){
+  const cur=quizState.questions[quizState.index];
+  $('quizProgress').textContent=`Вопрос ${quizState.index+1} из ${quizState.questions.length}`;
+  $('quizQuestion').textContent=cur.q;
+  const box=$('quizOptions'); box.innerHTML='';
+  cur.options.forEach(opt=>{
+    const btn=document.createElement('button');
+    btn.className='quiz-option'; btn.textContent=opt;
+    btn.onclick=()=>answerQuiz(opt, btn);
+    box.appendChild(btn);
+  });
+}
+function answerQuiz(opt, btn){
+  const cur=quizState.questions[quizState.index];
+  const correct = opt===cur.answer;
+  document.querySelectorAll('.quiz-option').forEach(b=>{
+    b.disabled=true;
+    if(b.textContent===cur.answer) b.classList.add('correct');
+    else if(b===btn) b.classList.add('wrong');
+  });
+  if(correct){ quizState.score++; showToast('Верно! +5 баллов'); } else { showToast('Неверно'); }
+  setTimeout(()=>{
+    quizState.index++;
+    if(quizState.index>=quizState.questions.length){
+      const earned=quizState.score*5;
+      finishGame('quiz','Викторина завершена!',`Правильных ответов: ${quizState.score} из ${quizState.questions.length}`,'🧠',earned,quizState.score);
+    } else renderQuizQuestion();
+  },900);
+}
+
+/* Memory */
+let memoryState=null;
+const MEMORY_EMOJIS=['📚','🧪','🔬','📐','🌍','🧮'];
+function startMemory(){
+  const deck=shuffle([...MEMORY_EMOJIS,...MEMORY_EMOJIS]).map(e=>({emoji:e, flipped:false, matched:false}));
+  memoryState={deck, moves:0, matchedPairs:0, lock:false, first:null};
+  show('game-memory'); renderMemory();
+}
+function renderMemory(){
+  const grid=$('memoryGrid'); grid.innerHTML='';
+  memoryState.deck.forEach((card,i)=>{
+    const el=document.createElement('button');
+    el.className='memory-card'+(card.matched?' matched':'')+(card.flipped?' flipped':'');
+    el.textContent=(card.flipped||card.matched)?card.emoji:'?';
+    el.onclick=()=>flipMemory(i);
+    grid.appendChild(el);
+  });
+  $('memoryProgress').textContent=`Ходы: ${memoryState.moves} · Пары: ${memoryState.matchedPairs}/${MEMORY_EMOJIS.length}`;
+}
+function flipMemory(i){
+  const m=memoryState; if(m.lock) return;
+  const card=m.deck[i]; if(card.flipped||card.matched) return;
+  card.flipped=true;
+  if(m.first===null){ m.first=i; renderMemory(); return; }
+  m.moves++;
+  const firstCard=m.deck[m.first];
+  if(firstCard.emoji===card.emoji){
+    firstCard.matched=true; card.matched=true; m.matchedPairs++; m.first=null;
+    renderMemory();
+    if(m.matchedPairs===MEMORY_EMOJIS.length){
+      const earned=Math.max(6,20-Math.max(0,m.moves-MEMORY_EMOJIS.length));
+      setTimeout(()=>finishGame('memory','Все пары найдены!',`Ходов потрачено: ${m.moves}`,'🃏',earned,m.matchedPairs),400);
+    }
+  } else {
+    m.lock=true; renderMemory();
+    setTimeout(()=>{ firstCard.flipped=false; card.flipped=false; m.first=null; m.lock=false; renderMemory(); },700);
+  }
+}
+
+/* Quick math */
+let mathState=null;
+function genMathProblem(){
+  const ops=['+','-','×']; const op=ops[Math.floor(Math.random()*ops.length)];
+  let a,b,answer;
+  if(op==='+'){ a=Math.floor(Math.random()*40)+1; b=Math.floor(Math.random()*40)+1; answer=a+b; }
+  else if(op==='-'){ a=Math.floor(Math.random()*40)+10; b=Math.floor(Math.random()*a); answer=a-b; }
+  else { a=Math.floor(Math.random()*11)+2; b=Math.floor(Math.random()*11)+2; answer=a*b; }
+  return {text:`${a} ${op} ${b}`, answer};
+}
+function startMath(){
+  mathState={problems:Array.from({length:8}, genMathProblem), index:0, correct:0};
+  show('game-math'); renderMath(); $('mathInput').focus();
+}
+function renderMath(){
+  const cur=mathState.problems[mathState.index];
+  $('mathProgress').textContent=`Пример ${mathState.index+1} из ${mathState.problems.length} · Верно: ${mathState.correct}`;
+  $('mathProblem').textContent=cur.text; $('mathInput').value='';
+}
+function submitMath(){
+  const val=Number($('mathInput').value);
+  const cur=mathState.problems[mathState.index];
+  if($('mathInput').value.trim()!=='' && val===cur.answer) mathState.correct++;
+  mathState.index++;
+  if(mathState.index>=mathState.problems.length){
+    const earned=mathState.correct*3;
+    finishGame('math','Счёт завершён!',`Правильных ответов: ${mathState.correct} из ${mathState.problems.length}`,'🔢',earned,mathState.correct);
+  } else renderMath();
+}
+$('mathInput').addEventListener('keydown', e=>{ if(e.key==='Enter') submitMath(); });
+
+/* Words */
+let wordsState=null;
+const WORD_BANK=['ШКОЛА','ЗНАНИЯ','ФИЗИКА','ХИМИЯ','ИСТОРИЯ','ЛИТЕРАТУРА','ГЕОГРАФИЯ','АЛГЕБРА'];
+function scrambleWord(word){ let s; do{ s=shuffle(word.split('')).join(''); }while(s===word && word.length>1); return s; }
+function startWords(){
+  const words=shuffle(WORD_BANK).slice(0,5);
+  wordsState={words, index:0, correct:0, scrambled:words.map(scrambleWord)};
+  show('game-words'); renderWord(); $('wordInput').focus();
+}
+function renderWord(){
+  $('wordsProgress').textContent=`Слово ${wordsState.index+1} из ${wordsState.words.length} · Верно: ${wordsState.correct}`;
+  $('wordScramble').textContent=wordsState.scrambled[wordsState.index]; $('wordInput').value='';
+}
+function submitWord(){
+  const val=$('wordInput').value.trim().toUpperCase();
+  const cur=wordsState.words[wordsState.index];
+  if(val===cur) wordsState.correct++;
+  wordsState.index++;
+  if(wordsState.index>=wordsState.words.length){
+    const earned=wordsState.correct*4;
+    finishGame('words','Слова собраны!',`Угадано верно: ${wordsState.correct} из ${wordsState.words.length}`,'📝',earned,wordsState.correct);
+  } else renderWord();
+}
+$('wordInput').addEventListener('keydown', e=>{ if(e.key==='Enter') submitWord(); });
+
+/* ---------- AI chat (local simulation) ---------- */
+const AI_SHORTCUTS={
+  'Объяснить тему':'Конечно! Напиши тему, например «фотосинтез» или «дроби», и я объясню её простыми словами с примерами.',
+  'Пройти тест':'Хорошо! Напиши предмет и тему — я составлю короткий тест. А пока попробуй викторину в разделе игр 🎮',
+  'Совет по учёбе':'Попробуй начать с небольшой цели на 15–25 минут. После сессии сделай короткий перерыв и отметь прогресс в задачах.'
+};
+function appendMessage(text, isUser){
+  const box=$('messages'); const el=document.createElement('div');
+  el.className='message'+(isUser?' user-message':''); el.textContent=text;
+  box.appendChild(el); box.scrollTop=box.scrollHeight;
+}
+function askAI(type){ appendMessage(type,true); setTimeout(()=>appendMessage(AI_SHORTCUTS[type],false),400); }
+function simulateAiReply(question){
+  const q=question.toLowerCase();
+  if(q.includes('привет')) return 'Привет! Чем могу помочь сегодня? 😊';
+  if(q.includes('спасибо')) return 'Всегда пожалуйста! Возвращайся, если будут ещё вопросы.';
+  if(q.includes('фотосин')) return 'Фотосинтез — процесс, при котором растения превращают свет, воду и углекислый газ в глюкозу и кислород.';
+  if(q.includes('дроб')) return 'Дробь показывает часть от целого: числитель — сколько частей взято, знаменатель — на сколько частей разделено целое.';
+  return 'Хороший вопрос! Для развёрнутых ответов сюда нужно подключить настоящий AI API — сейчас это рабочее демо с локальными подсказками.';
+}
+function sendMessage(){
+  const input=$('chatInput'); const v=input.value.trim(); if(!v) return;
+  appendMessage(v,true); input.value='';
+  setTimeout(()=>appendMessage(simulateAiReply(v),false),500);
+}
+
+/* ---------- Teacher ---------- */
+function copyClassCode(){
+  const val = state.classCode;
+  const input = $('teacherCode');
+  input.select();
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(val).then(()=>showToast('Код скопирован')).catch(()=>showToast('Не удалось скопировать'));
+  } else {
+    try{ document.execCommand('copy'); showToast('Код скопирован'); }catch(e){ showToast('Не удалось скопировать'); }
+  }
+}
+function renderTeacher(){
+  $('teacherCode').value = state.classCode;
+}
+
+/* ---------- Init ---------- */
+function init(){
+  updateTimerDisplay();
+  document.querySelectorAll('.filter-tab').forEach(t=>t.classList.toggle('active', t.dataset.f===state.taskFilter));
+  if(state.loggedIn){
+    $('name').value=state.name; $('email').value=state.email;
+    enterApp();
+  } else {
+    show('register');
+  }
+  appendMessage('Привет! 👋 Я твой AI-помощник. Задай мне любой вопрос по учёбе, и я постараюсь объяснить простыми словами!', false);
+  renderRecords();
+}
+init();
+</script>
+</body>
+</html>
